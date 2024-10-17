@@ -17,9 +17,9 @@ public class JwtService {
     // Genera un JWT para el usuario autenticado
     public String generateJwtToken(OAuth2User oAuth2User) {
         return Jwts.builder()
-                .setSubject(oAuth2User.getAttribute("email"))  // El correo como identificador
-                .claim("name", oAuth2User.getAttribute("name")) // Información adicional
-                .signWith(SECRET_KEY, SignatureAlgorithm.HS512) // Firmar con la clave secreta
+                .setSubject(oAuth2User.getAttribute("email"))
+                .claim("name", oAuth2User.getAttribute("name"))
+                .signWith(SECRET_KEY, SignatureAlgorithm.HS512)
                 .compact();
     }
 
