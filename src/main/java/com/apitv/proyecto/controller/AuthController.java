@@ -1,32 +1,43 @@
 package com.apitv.proyecto.controller;
 
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
-import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
-import org.springframework.stereotype.Controller;
+import com.apitv.proyecto.service.JwtService;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.servlet.view.RedirectView;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
-import jakarta.servlet.http.HttpServletRequest;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Logger;
 
-@Controller
+@RestController
 @RequestMapping("/auth")
 public class AuthController {
 
-    private final ClientRegistrationRepository clientRegistrationRepository;
+    private static final Logger logger = Logger.getLogger(AuthController.class.getName());
+    private final JwtService jwtService;
 
-    public AuthController(ClientRegistrationRepository clientRegistrationRepository) {
-        this.clientRegistrationRepository = clientRegistrationRepository;
+    public AuthController(JwtService jwtService) {
+        this.jwtService = jwtService;
     }
 
-    @GetMapping("/login/google")
-    public RedirectView redirectToGoogle(HttpServletRequest request) {
-        DefaultOAuth2AuthorizationRequestResolver resolver =
-                new DefaultOAuth2AuthorizationRequestResolver(clientRegistrationRepository, "/oauth2/authorization");
+    @GetMapping("/callback/google")
+    public Map<String, String> googleCallback(@AuthenticationPrincipal OAuth2User oAuth2User) {
+        logger.info("Handling Google callback");
+        Map<String, String> response = new HashMap<>();
 
-        OAuth2AuthorizationRequest authorizationRequest = resolver.resolve(request, "google");
+        if (oAuth2User == null) {
+            logger.warning("Authentication information is missing or invalid");
+            response.put("error", "Authentication information is missing or invalid");
+            return response;
+        }
 
-        return new RedirectView(authorizationRequest.getAuthorizationRequestUri());
+        logger.info("Generating JWT for authenticated user: " + oAuth2User.getAttribute("email"));
+        String jwtToken = jwtService.generateJwtToken(oAuth2User);
+
+        response.put("token", jwtToken);
+        response.put("message", "Authentication successful");
+        return response;
     }
 }
