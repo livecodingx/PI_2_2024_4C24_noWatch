@@ -1,14 +1,13 @@
 package com.apitv.proyecto.controller;
 
 import com.apitv.proyecto.service.JwtService;
-import org.springframework.security.oauth2.core.user.OAuth2User;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.IOException;
 import java.util.logging.Logger;
 
 @RestController
@@ -22,22 +21,13 @@ public class AuthController {
         this.jwtService = jwtService;
     }
 
-    @GetMapping("/callback/google")
-    public Map<String, String> googleCallback(@AuthenticationPrincipal OAuth2User oAuth2User) {
-        logger.info("Handling Google callback");
-        Map<String, String> response = new HashMap<>();
+    @GetMapping("/callback/web/google")
+    public void googleCallback(OAuth2AuthenticationToken token, HttpServletResponse response) throws IOException {
+        String jwtToken = jwtService.generateJwtToken(token.getPrincipal());
+        logger.info("Generando JWT: " + jwtToken);
 
-        if (oAuth2User == null) {
-            logger.warning("Authentication information is missing or invalid");
-            response.put("error", "Authentication information is missing or invalid");
-            return response;
-        }
-
-        logger.info("Generating JWT for authenticated user: " + oAuth2User.getAttribute("email"));
-        String jwtToken = jwtService.generateJwtToken(oAuth2User);
-
-        response.put("token", jwtToken);
-        response.put("message", "Authentication successful");
-        return response;
+        // Redirigir al frontend con el token JWT como parámetro
+        String redirectUrl = "http://localhost:3000/web/perfil?token=" + jwtToken;
+        response.sendRedirect(redirectUrl);
     }
 }
