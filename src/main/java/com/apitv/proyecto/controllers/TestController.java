@@ -1,4 +1,4 @@
-package com.apitv.proyecto.controller;
+package com.apitv.proyecto.controllers;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
