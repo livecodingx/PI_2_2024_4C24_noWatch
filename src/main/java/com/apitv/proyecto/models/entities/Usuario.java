@@ -13,11 +13,13 @@ public class Usuario {
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private String correo;
+    private String email;
 
     @Column(nullable = false)
     private String nombre;
 
     @Column(nullable = false)
-    private String clave;
+    private String apellido;
+
+    private String fotoUrl;
 }

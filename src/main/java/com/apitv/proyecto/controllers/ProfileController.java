@@ -1,6 +1,7 @@
-package com.apitv.proyecto.controller;
+package com.apitv.proyecto.controllers;
 
-import com.apitv.proyecto.service.JwtService;
+import com.apitv.proyecto.models.entities.Usuario;
+import com.apitv.proyecto.services.UsuarioServicio;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,20 +15,27 @@ import java.util.Map;
 @RequestMapping("/profile")
 public class ProfileController {
 
-    private final JwtService jwtService;
+    private final UsuarioServicio usuarioServicio;
 
-    public ProfileController(JwtService jwtService) {
-        this.jwtService = jwtService;
+    public ProfileController(UsuarioServicio usuarioServicio) {
+        this.usuarioServicio = usuarioServicio;
     }
 
     @GetMapping("")
     public Map<String, Object> profile(@AuthenticationPrincipal User user) {
         Map<String, Object> userProfile = new HashMap<>();
         String email = user.getUsername();
-        userProfile.put("email", email);
-        userProfile.put("first_name", "Usuario"); // Puedes ajustar esto si tienes más información en el token
-        userProfile.put("last_name", "Desconocido"); // Puedes ajustar esto si tienes más información en el token
-        userProfile.put("photo", "URL_foto"); // Puedes obtener la foto desde otra fuente si es necesario
+
+        // Obtener el usuario de la base de datos
+        Usuario usuario = usuarioServicio.obtenerUsuarioPorCorreo(email);
+        if (usuario != null) {
+            userProfile.put("email", usuario.getEmail());
+            userProfile.put("first_name", usuario.getNombre());
+            userProfile.put("last_name", usuario.getApellido());
+            userProfile.put("photo", usuario.getFotoUrl());
+        } else {
+            userProfile.put("error", "Usuario no encontrado");
+        }
 
         return userProfile;
     }
