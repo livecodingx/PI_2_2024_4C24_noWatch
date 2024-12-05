@@ -1,8 +1,6 @@
 package com.apitv.proyecto.config;
 
 import com.apitv.proyecto.filter.JwtAuthenticationFilter;
-import com.apitv.proyecto.service.JwtService;
-import jakarta.servlet.Filter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -12,7 +10,6 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import java.io.IOException;
 
 @Configuration
 @EnableWebSecurity

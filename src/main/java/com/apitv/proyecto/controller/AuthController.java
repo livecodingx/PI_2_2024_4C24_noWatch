@@ -19,7 +19,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "http://localhost:5173")
 public class AuthController {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
@@ -41,8 +41,7 @@ public class AuthController {
         Map<String, String> response = new HashMap<>();
 
         if (idTokenString == null) {
-            logger.error("Token is missing");
-            response.put("error", "Token is missing");
+            response.put("error de idtoken", "Token is missing");
             return response;
         }
 
@@ -75,8 +74,6 @@ public class AuthController {
                     usuario.setFotoUrl(fotoUrl);
                     usuarioService.guardarUsuario(usuario);
                     logger.info("Usuario creado y guardado en la base de datos");
-                } else {
-                    logger.info("Usuario ya existente: " + email);
                 }
 
                 // Generar el token JWT
