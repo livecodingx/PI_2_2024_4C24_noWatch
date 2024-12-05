@@ -4,7 +4,6 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import java.util.logging.Logger;
 import java.security.Key;
@@ -15,7 +14,7 @@ import java.util.function.Function;
 public class JwtService {
 
     private static final String SECRET_KEY = "SecretKeySecretKeySecretKeySecretKey"; // Clave secreta de al menos 32 caracteres
-    private static final long TOKEN_VALIDITY = 1000 * 60 * 60; // 1 hora
+    private static final long TOKEN_VALIDITY = 3600000; // 1 hora
     private static final Logger logger = Logger.getLogger(JwtService.class.getName());
 
     private final Key key;
@@ -24,11 +23,11 @@ public class JwtService {
         this.key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
     }
 
-    public String generateJwtToken(OAuth2User oAuth2User) {
-        logger.info("Generating JWT for user: " + oAuth2User.getAttribute("email"));
+    public String generateJwtToken(String email, String name) {
+        logger.info("Generating JWT for user: " + email);
         return Jwts.builder()
-                .setSubject(oAuth2User.getAttribute("email"))
-                .claim("name", oAuth2User.getAttribute("name"))
+                .setSubject(email)
+                .claim("name", name)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + TOKEN_VALIDITY))
                 .signWith(key, SignatureAlgorithm.HS256)

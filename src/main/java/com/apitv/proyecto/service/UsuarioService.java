@@ -1,4 +1,4 @@
-package com.apitv.proyecto.services;
+package com.apitv.proyecto.service;
 
 import com.apitv.proyecto.models.entities.Usuario;
 import com.apitv.proyecto.models.daos.UsuarioRepositorio;
@@ -6,12 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class UsuarioServicio {
+public class UsuarioService {
 
     private final UsuarioRepositorio usuarioRepositorio;
 
     @Autowired
-    public UsuarioServicio(UsuarioRepositorio usuarioRepositorio) {
+    public UsuarioService(UsuarioRepositorio usuarioRepositorio) {
         this.usuarioRepositorio = usuarioRepositorio;
     }
 
