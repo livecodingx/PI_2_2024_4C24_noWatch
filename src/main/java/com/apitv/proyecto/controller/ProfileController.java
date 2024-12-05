@@ -12,9 +12,10 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.HashMap;
 import java.util.Map;
 
+@CrossOrigin(origins = "http://localhost:3000", allowedHeaders = "*")
 @RestController
 @RequestMapping("/profile")
-@CrossOrigin(origins = "http://localhost:3000")
+
 public class ProfileController {
 
     private final UsuarioService usuarioService;
@@ -29,6 +30,8 @@ public class ProfileController {
     public Map<String, Object> profile(HttpServletRequest request) {
         Map<String, Object> userProfile = new HashMap<>();
         String authHeader = request.getHeader("Authorization");
+
+        System.out.println("Authorization Header: " + authHeader);
 
         // Verificar si el encabezado de autorización está presente y es válido
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -46,6 +49,7 @@ public class ProfileController {
 
             // Extraer el correo del token
             String email = jwtService.extractUsername(jwtToken);
+            System.out.println("User Email from Token: " + email);
 
             // Obtener al usuario desde la base de datos
             Usuario usuario = usuarioService.obtenerUsuarioPorCorreo(email);

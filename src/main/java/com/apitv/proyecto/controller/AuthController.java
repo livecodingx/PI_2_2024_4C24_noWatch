@@ -1,32 +1,38 @@
 package com.apitv.proyecto.controller;
 
 import com.apitv.proyecto.models.entities.Usuario;
-import com.apitv.proyecto.service.GoogleTokenDecoder;
 import com.apitv.proyecto.service.JwtService;
 import com.apitv.proyecto.service.UsuarioService;
-import io.jsonwebtoken.Claims;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.jackson2.JacksonFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
+
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin(origins = "**")
+@CrossOrigin(origins = "http://localhost:3000")
 public class AuthController {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
+    private static final String CLIENT_ID = "93151703613-9oa78lt5h7lf7gimrnlluciag49pi4hn.apps.googleusercontent.com";
+    private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
+
     private final JwtService jwtService;
     private final UsuarioService usuarioService;
-    private final GoogleTokenDecoder googleTokenDecoder;
 
-    public AuthController(JwtService jwtService, UsuarioService usuarioService, GoogleTokenDecoder googleTokenDecoder) {
+    public AuthController(JwtService jwtService, UsuarioService usuarioService) {
         this.jwtService = jwtService;
         this.usuarioService = usuarioService;
-        this.googleTokenDecoder = googleTokenDecoder;
     }
 
     @PostMapping("/callback/google")
@@ -41,51 +47,50 @@ public class AuthController {
         }
 
         try {
-            // Decodificar el idToken y verificar audiencia y expiración
             logger.info("Decodificando el token...");
-            String expectedAudience = "93151703613-9oa78lt5h7lf7gimrnlluciag49pi4hn.apps.googleusercontent.com";
-            Claims claims = googleTokenDecoder.decodeAndVerifyBasicToken(idTokenString, expectedAudience);
+            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
+                    GoogleNetHttpTransport.newTrustedTransport(), JSON_FACTORY)
+                    .setAudience(Collections.singletonList(CLIENT_ID))
+                    .build();
 
-            // Extraer información del usuario del idToken decodificado
-            logger.info("Extrayendo información del token...");
-            String email = claims.get("email", String.class);
-            String nombre = claims.get("given_name", String.class);
-            String apellido = claims.get("family_name", String.class);
-            String fotoUrl = claims.get("picture", String.class);
+            GoogleIdToken idToken = verifier.verify(idTokenString);
+            if (idToken != null) {
+                GoogleIdToken.Payload payload = idToken.getPayload();
+                logger.info("Extrayendo información del token...");
 
-            // Verificar si la información extraída es válida
-            if (email == null || nombre == null) {
-                logger.error("Error: No se pudo extraer la información del usuario del token");
-                response.put("error", "Invalid token content");
-                return response;
-            }
+                // Extraer información del usuario del payload
+                String email = payload.getEmail();
+                String nombre = (String) payload.get("given_name");
+                String apellido = (String) payload.get("family_name");
+                String fotoUrl = (String) payload.get("picture");
 
-            // Guardar información del usuario en la base de datos si no existe
-            logger.info("Verificando si el usuario existe en la base de datos...");
-            Usuario usuario = usuarioService.obtenerUsuarioPorCorreo(email);
-            if (usuario == null) {
-                logger.info("Usuario no encontrado, creando uno nuevo...");
-                usuario = new Usuario();
-                usuario.setCorreo(email);
-                usuario.setNombre(nombre);
-                usuario.setApellido(apellido);
-                usuario.setFotoUrl(fotoUrl);
-                usuarioService.guardarUsuario(usuario);
-                logger.info("Usuario creado y guardado en la base de datos");
+                // Guardar información del usuario en la base de datos si no existe
+                logger.info("Verificando si el usuario existe en la base de datos...");
+                Usuario usuario = usuarioService.obtenerUsuarioPorCorreo(email);
+                if (usuario == null) {
+                    usuario = new Usuario();
+                    usuario.setCorreo(email);
+                    usuario.setNombre(nombre);
+                    usuario.setApellido(apellido);
+                    usuario.setFotoUrl(fotoUrl);
+                    usuarioService.guardarUsuario(usuario);
+                    logger.info("Usuario creado y guardado en la base de datos");
+                } else {
+                    logger.info("Usuario ya existente: " + email);
+                }
+
+                // Generar el token JWT
+                logger.info("Generando el token JWT para el usuario...");
+                String jwtToken = jwtService.generateJwtToken(email, nombre);
+                response.put("token", jwtToken);
+                response.put("message", "Authentication successful");
+                logger.info(jwtToken);
             } else {
-                logger.info("Usuario ya existente: " + email);
+                response.put("error", "Invalid ID token");
             }
 
-            // Generar el token JWT
-            logger.info("Generando el token JWT para el usuario...");
-            String jwtToken = jwtService.generateJwtToken(email, nombre);
-            response.put("token", jwtToken);
-            response.put("message", "Authentication successful");
-            logger.info("Token JWT generado exitosamente");
             return response;
-
         } catch (Exception e) {
-            logger.error("Error decoding or verifying idToken: " + e.getMessage());
             response.put("error", "Error decoding or verifying idToken: " + e.getMessage());
             return response;
         }
