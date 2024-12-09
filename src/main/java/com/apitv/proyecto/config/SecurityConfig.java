@@ -26,7 +26,7 @@ public class SecurityConfig {
 
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(registry -> {
-                    registry.requestMatchers("/auth/**","/profile/**").permitAll();
+                    registry.requestMatchers("/auth/**","/profile/**","/favoritos/**").permitAll();
                     registry.anyRequest().authenticated();
                 })
                 .oauth2Login(Customizer.withDefaults())
