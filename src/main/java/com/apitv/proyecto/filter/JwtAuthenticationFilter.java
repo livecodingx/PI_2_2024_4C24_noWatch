@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.logging.Logger;
 
 @Component
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "http://localhost:80")
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 

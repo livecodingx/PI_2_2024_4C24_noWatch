@@ -1,7 +1,7 @@
 package com.apitv.proyecto.controller;
 
 import com.apitv.proyecto.models.entities.Favorito;
-import com.apitv.proyecto.services.FavoritoService;
+import com.apitv.proyecto.service.FavoritoService;
 import com.apitv.proyecto.service.JwtService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +16,8 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/favoritos")
-@CrossOrigin(origins = "http://localhost:5173", allowedHeaders = "*")
+@CrossOrigin(origins = "http://localhost:80", allowedHeaders = "*")
+
 public class FavoritoController {
     private final FavoritoService favoritoService;
     private final UsuarioService usuarioService;

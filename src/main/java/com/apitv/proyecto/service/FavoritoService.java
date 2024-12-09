@@ -1,4 +1,4 @@
-package com.apitv.proyecto.services;
+package com.apitv.proyecto.service;
 
 import com.apitv.proyecto.models.entities.Favorito;
 import com.apitv.proyecto.repositories.FavoritoRepository;
